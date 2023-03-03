@@ -10,7 +10,7 @@ export function hasError(control: FormControl | AbstractControl | undefined | nu
 export function disallowedWords(words: string[]): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
         const value = control.value;
-        if (words.includes(value)) {
+        if (value && words.some(word => value.includes(word))) {
             return { disallowedWords: true }
         }
         return null;
