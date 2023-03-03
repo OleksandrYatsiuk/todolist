@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, EMPTY, map, Observable } from 'rxjs';
+import { catchError, EMPTY, map } from 'rxjs';
 import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
 import { TodoService } from 'src/app/core/services/todo/todo.service';
 import { disallowedWords, hasError } from 'src/app/utils/validators.util';
@@ -12,7 +12,7 @@ import { disallowedWords, hasError } from 'src/app/utils/validators.util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TodoComponent implements OnInit {
-  public todos$!: Observable<TodoItemView[]>;
+  public todos: TodoItemView[] = [];
 
   public description = new FormControl('', [Validators.required, disallowedWords(['cat', 'dog', 'yes', 'no'])]);
 
@@ -33,7 +33,11 @@ export class TodoComponent implements OnInit {
   }
 
   private queryTodoList(): void {
-    this.todos$ = this.todoService.getTodoList().pipe(map(todos => todos.sort((a, b) => a.description.localeCompare(b.description))));
+    this.todoService.getTodoList().pipe(map(todos => todos.sort((a, b) => a.description.localeCompare(b.description))))
+      .subscribe(todos => {
+        this.todos = todos;
+        this.changeDetectorRef.detectChanges();
+      })
   }
 
   public onDeletedItem(id: string): void {
