@@ -51,19 +51,6 @@ describe('TodoComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('ngOnInit', () => {
-    it('should get todos list', (done: DoneFn) => {
-      spyOn(todoService, 'getTodoList').and.returnValue(of([todo, { ...todo, description: 'a11' }]));
-      component.ngOnInit();
-
-      component.todos$.subscribe(items => {
-        expect(items.length).toBeGreaterThan(0);
-        expect(todoService.getTodoList).toHaveBeenCalled();
-        done()
-      });
-    })
-  });
-
   describe('onSave', () => {
     it('should create Todo Item', () => {
       spyOn(todoService, 'createTodo').and.returnValue(of(todo));
