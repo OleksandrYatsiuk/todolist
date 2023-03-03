@@ -1,0 +1,40 @@
+<table class="table">
+  <thead class="bg-gray-50">
+    <tr>
+      <th scope="col" class="header">Id</th>
+      <th scope="col" class="header">Description</th>
+      <th scope="col" class="header text-center w-52">Action</th>
+    </tr>
+  </thead>
+  <tbody class="bg-white divide-y divide-gray-200">
+    <tr *ngFor="let item of items">
+      <td class="cell">{{ item.id }}</td>
+      <td class="cell">{{ item.description }}</td>
+      <td class="cell w-52">
+        <div class="actions">
+          <mat-icon
+            class="cursor-pointer"
+            *ngIf="item.isCompleted; else notCompletedToDo"
+            (click)="markAsCompleted(item)"
+            >check_box</mat-icon
+          >
+
+          <ng-template #notCompletedToDo>
+            <mat-icon
+              class="cursor-pointer"
+              title="Mark as completed"
+              (click)="markAsCompleted(item)"
+              >check_box_outline_blank</mat-icon
+            >
+          </ng-template>
+          <mat-icon class="cursor-pointer" (click)="editTodo(item)"
+            >edit</mat-icon
+          >
+          <mat-icon class="cursor-pointer" (click)="onDelete(item.id)"
+            >delete_forever</mat-icon
+          >
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

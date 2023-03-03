@@ -21,8 +21,8 @@ const create = async (newTodoItem: BaseTodoItem): Promise<TodoItem> => {
   const uid = new ShortUniqueId({ length: 10 });
   const id: string = uid();
   todoItems[id] = {
-    id,
     ...newTodoItem,
+    id,
   };
 
   return todoItems[id];

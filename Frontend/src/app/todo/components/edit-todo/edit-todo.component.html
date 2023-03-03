@@ -1,0 +1,41 @@
+<div class="container edit-todo">
+  <h1 mat-dialog-title>Edit Item</h1>
+
+  <form class="mb-3 row" [formGroup]="form" mat-dialog-content>
+    <label for="description" class="form-label col-form-label col-sm-2"
+      >Description</label
+    >
+    <div class="col-md">
+      <input
+        placeholder="Enter description..."
+        type="text"
+        formControlName="description"
+        id="description"
+        class="input"
+      />
+    </div>
+    <span class="error" *ngIf="hasError(form?.get('description'), 'required')">
+      The field is required</span
+    >
+    <span
+      class="error"
+      *ngIf="hasError(form?.get('description'), 'disallowedWords')"
+      >The field includes disallowed word</span
+    >
+  </form>
+  <div class="mb-3 center row">
+    <div class="flex gap-4" mat-dialog-actions [align]="'center'">
+      <button
+        mat-button
+        type="button"
+        class="button button--primary"
+        (click)="onUpdateTodo()"
+      >
+        Save
+      </button>
+      <button mat-button mat-dialog-close class="button button--secondary">
+        Close
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+.actions {
+  @apply flex items-center justify-evenly;
+}
+
+.table {
+  @apply min-w-full divide-y table-auto divide-gray-200;
+
+  .header {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+  .cell {
+    @apply px-6 py-4 text-left;
+  }
+}

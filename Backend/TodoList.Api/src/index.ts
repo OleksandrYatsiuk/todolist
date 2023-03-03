@@ -11,7 +11,7 @@ const PORT: number = parseInt(process.env.PORT as string, 10);
 
 const app = getApp();
 app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+  console.log(`Listening on port http://localhost:${PORT}`);
 });
 
 export default app;
