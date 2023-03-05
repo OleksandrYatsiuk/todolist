@@ -3,7 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
-import { deleteTodo, updateTodo } from '../../store/todo.actions';
+import { completeTodo, deleteTodo, updateTodo } from '../../store/todo.actions';
 import { AppState, selectTodos } from '../../store/todo.selectors';
 import { EditTodoComponent } from '../edit-todo/edit-todo.component';
 
@@ -28,7 +28,7 @@ export class TodoTableComponent {
   }
 
   public markAsCompleted(todo: TodoItemView): void {
-    this.store.dispatch(updateTodo({ id: todo.id, body: { ...todo, isCompleted: !todo.isCompleted } }))
+    this.store.dispatch(completeTodo({ id: todo.id, body: { ...todo, isCompleted: !todo.isCompleted } }));
   }
 
   public editTodo(todo: TodoItemView): void {

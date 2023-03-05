@@ -6,7 +6,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { provideMockStore } from '@ngrx/store/testing';
 import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
-import { deleteTodo, updateTodo } from '../../store/todo.actions';
+import { completeTodo, deleteTodo, updateTodo } from '../../store/todo.actions';
 import { AppState } from '../../store/todo.selectors';
 
 import { TodoTableComponent } from './todo-table.component';
@@ -64,7 +64,7 @@ describe('TodoTableComponent', () => {
   describe('markAsCompleted', () => {
     it('should change isCompleted prop to false', () => {
       component.markAsCompleted(todo);
-      expect(store.dispatch).toHaveBeenCalledWith(updateTodo({ id: todo.id, body: { ...todo, isCompleted: false } }));
+      expect(store.dispatch).toHaveBeenCalledWith(completeTodo({ id: todo.id, body: { ...todo, isCompleted: false } }));
     });
   });
 

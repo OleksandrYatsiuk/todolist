@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { TodoService } from 'src/app/core/services/todo/todo.service';
-import { createTodo, createTodoSuccess, deleteTodo, deleteTodoSuccess, loadTodos, loadTodosSuccess, resetUpdatingState, updateTodo, updateTodoSuccess } from './todo.actions';
+import { completeTodo, completeTodoSuccess, createTodo, createTodoSuccess, deleteTodo, deleteTodoSuccess, loadTodos, loadTodosSuccess, resetUpdatingState, updateTodo, updateTodoSuccess } from './todo.actions';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable()
@@ -37,6 +37,25 @@ export class TodoEffects {
                         this.snackBar.open('Todo was updated successfully!');
                         resetUpdatingState({ updated: true })
                         return updateTodoSuccess({ todo });
+                    }
+                    ),
+                    catchError(e => {
+                        this.snackBar.open(e.error);
+                        return EMPTY;
+                    })
+                ))
+        )
+    }
+    );
+
+    public completeTodo$ = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(completeTodo),
+            mergeMap(action => this.todoService.updateTodo(action.id, action.body)
+                .pipe(
+                    map(todo => {
+                        this.snackBar.open('Todo was updated successfully!');
+                        return completeTodoSuccess({ todo });
                     }
                     ),
                     catchError(e => {

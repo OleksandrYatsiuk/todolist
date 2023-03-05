@@ -38,6 +38,16 @@ export const updateTodoSuccess = createAction(
     props<{ todo: TodoItemView }>()
 );
 
+export const completeTodo = createAction(
+    '[Todo API] Mark Todo as Completed',
+    props<{ id: string, body: TodoItem }>()
+);
+
+export const completeTodoSuccess = createAction(
+    '[Todo API] Replace completed Todo',
+    props<{ todo: TodoItemView }>()
+);
+
 export const resetUpdatingState = createAction(
     '[Todo APP] Mark todo as not Updated',
     props<{ updated: boolean }>()
