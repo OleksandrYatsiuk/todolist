@@ -1,20 +1,23 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { of, throwError } from 'rxjs';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { Store } from '@ngrx/store';
+import { provideMockStore } from '@ngrx/store/testing';
 import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
-import { TodoService } from 'src/app/core/services/todo/todo.service';
+import { deleteTodo, updateTodo } from '../../store/todo.actions';
+import { AppState } from '../../store/todo.selectors';
 
 import { TodoTableComponent } from './todo-table.component';
 
 describe('TodoTableComponent', () => {
   let component: TodoTableComponent;
   let fixture: ComponentFixture<TodoTableComponent>;
-  let todoService: TodoService;
+  let store: Store<AppState>;
+  const todo: TodoItemView = { id: '1', description: 'B', isCompleted: true };
+  const initialState: AppState = { todos: { todos: [todo, { ...todo, description: 'A' }], created: true, updated: false } };
 
-  const todo: TodoItemView = { id: '1', description: 'Description', isCompleted: true };
-  const snackBar: MatSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -22,17 +25,17 @@ describe('TodoTableComponent', () => {
       imports: [
         MatDialogModule,
         HttpClientTestingModule,
-        MatSnackBarModule
+        MatSnackBarModule,
+        MatIconModule
       ],
-      providers: [
-        { provide: MatSnackBar, useValue: snackBar },
-      ]
+      providers: [provideMockStore({ initialState })]
     })
       .compileComponents();
 
     fixture = TestBed.createComponent(TodoTableComponent);
     component = fixture.componentInstance;
-    todoService = TestBed.inject(TodoService);
+    store = TestBed.inject(Store);
+    spyOn(store, 'dispatch');
 
     fixture.detectChanges();
   });
@@ -41,34 +44,49 @@ describe('TodoTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('editTodo', () => {
-    it('should open edit dialog', () => {
-      spyOn(component.dialog, 'open').and.returnValue({ afterClosed: () => of(true) } as MatDialogRef<TodoTableComponent>);
-      component.editTodo(todo);
-      expect(snackBar.open).toHaveBeenCalled();
-      expect(component.dialog.open).toHaveBeenCalled();
+  describe('ngOnInit', () => {
+    it('should sort todos by alphabetic order by description', (done: DoneFn) => {
+      component.todos$.subscribe(results => {
+        expect(results[0].description).toEqual('A');
+        expect(results[1].description).toEqual('B');
+        done();
+      })
     });
-  })
-
-  describe('markAsCompleted', () => {
-    it('should mark todo as completed', () => {
-      spyOn(todoService, 'updateTodo').and.returnValue(of(todo))
-      component.markAsCompleted(todo);
-      expect(todoService.updateTodo).toHaveBeenCalledWith(todo.id, { ...todo, isCompleted: !todo.isCompleted });
-    });
-    it('should handle backend error todo as completed', () => {
-      spyOn(todoService, 'updateTodo').and.returnValue(throwError(() => 'Error'));
-      component.markAsCompleted(todo);
-      expect(snackBar.open).toHaveBeenCalled();
-    });
-  })
+  });
 
   describe('onDelete', () => {
-    it('should emit delete', () => {
-      spyOn(component.delete, 'emit');
-      component.onDelete('1');
-      expect(component.delete.emit).toHaveBeenCalledWith('1');
+    it('should dispatch delete action', () => {
+      component.onDelete('123');
+      expect(store.dispatch).toHaveBeenCalledWith(deleteTodo({ id: '123' }));
+    });
+  });
 
-    })
-  })
+  describe('markAsCompleted', () => {
+    it('should change isCompleted prop to false', () => {
+      component.markAsCompleted(todo);
+      expect(store.dispatch).toHaveBeenCalledWith(updateTodo({ id: todo.id, body: { ...todo, isCompleted: false } }));
+    });
+  });
+
+  describe('editTodo', () => {
+    it('should open edit dialog', () => {
+      spyOn(component.dialog, 'open');
+      component.editTodo(todo);
+      expect(component.dialog.open).toHaveBeenCalled();
+    });
+  });
+
+  describe('mouseHoverEvents', () => {
+    it('should set highlighted row', () => {
+      component.mouseOver('001');
+      expect(component.highlightedRow).toEqual('001');
+    });
+
+    it('should remove highlighted row', () => {
+      component.highlightedRow = '001';
+      fixture.detectChanges();
+      component.mouseOut();
+      expect(component.highlightedRow).toBeUndefined();
+    });
+  });
 });

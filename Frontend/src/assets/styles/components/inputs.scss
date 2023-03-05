@@ -1,7 +1,14 @@
 .input {
-  @apply border border-gray-400 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full;
+  @apply border border-gray-400 py-2 px-4 rounded-md w-full;
+  border-color: inherit;
+  outline: none;
 
   &.ng-invalid.ng-touched {
-    @apply border-red-500 focus:ring-0;
+    @apply border-primary-red focus:ring-0;
+  }
+
+  &-underline {
+    @apply border-0 rounded-none px-0;
+    border-bottom-width: 1px;
   }
 }

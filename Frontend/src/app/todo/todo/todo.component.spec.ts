@@ -9,18 +9,18 @@ import { TodoTableComponent } from '../components/todo-table/todo-table.componen
 import { TodoComponent } from './todo.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { TodoService } from 'src/app/core/services/todo/todo.service';
-import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
-import { of } from 'rxjs';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { provideMockStore } from '@ngrx/store/testing';
+import { AppState } from '../store/todo.selectors';
+import { Store } from '@ngrx/store';
+import { createTodo } from '../store/todo.actions';
 
 describe('TodoComponent', () => {
   let component: TodoComponent;
   let fixture: ComponentFixture<TodoComponent>;
-  let todoService: TodoService;
-  const todo: TodoItemView = { id: '1', description: 'Description', isCompleted: true };
-  const snackBar: MatSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
+  let store: Store<AppState>;
+  const initialState: AppState = { todos: { todos: [], created: true, updated: false } };
 
 
   beforeEach(async () => {
@@ -33,17 +33,16 @@ describe('TodoComponent', () => {
         MatIconModule,
         MatDialogModule,
         MatSnackBarModule,
+        MatIconModule,
         BrowserAnimationsModule
       ],
-      providers: [
-        { provide: MatSnackBar, useValue: snackBar },
-      ]
+      providers: [provideMockStore({ initialState })]
     })
       .compileComponents();
 
     fixture = TestBed.createComponent(TodoComponent);
     component = fixture.componentInstance;
-    todoService = TestBed.inject(TodoService);
+    store = TestBed.inject(Store);
     fixture.detectChanges();
   });
 
@@ -52,34 +51,36 @@ describe('TodoComponent', () => {
   });
 
   describe('onSave', () => {
+    beforeEach(() => {
+      spyOn(store, 'dispatch');
+    })
+
     it('should create Todo Item', () => {
-      spyOn(todoService, 'createTodo').and.returnValue(of(todo));
       component.description.setValue('aaa');
 
       component.onSave();
 
-      expect(todoService.createTodo).toHaveBeenCalled();
+      expect(store.dispatch).toHaveBeenCalledWith(createTodo({ todo: { isCompleted: false, description: 'aaa' } }));
+    });
+
+    it('should touch control and check validation', () => {
+      component.description.setValue('');
+
+      component.onSave();
+
+      expect(component.description.touched).toBeTrue();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
   });
 
-  describe('onDelete', () => {
-    it('should delete Todo Item', () => {
-      spyOn(todoService, 'deleteTodo').and.returnValue(of(''));
-      component.description.setValue('aaa');
+  describe('ngOnInit', () => {
+    it('should clear description if todo was created', () => {
+      spyOn(component.description, 'reset');
+      component.ngOnInit();
 
-      component.onDeletedItem('123');
-
-      expect(todoService.deleteTodo).toHaveBeenCalled();
-    });
-  });
-
-  describe('updateList', () => {
-    it('should get list one again', () => {
-      spyOn(todoService, 'getTodoList').and.returnValue(of([]));
-
-      component.onUpdateList();
-
-      expect(todoService.getTodoList).toHaveBeenCalled();
+      component.description.setValue('Todo # 1');
+      component.onSave();
+      expect(component.description.reset).toHaveBeenCalled();
     });
   });
 });

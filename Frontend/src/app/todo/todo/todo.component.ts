@@ -1,10 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, EMPTY, map } from 'rxjs';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Store } from '@ngrx/store';
+import { filter, Observable } from 'rxjs';
 import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
-import { TodoService } from 'src/app/core/services/todo/todo.service';
 import { disallowedWords, hasError } from 'src/app/utils/validators.util';
+import { createTodo, loadTodos, resetCreatingState } from '../store/todo.actions';
+import { AppState, selectTodos, selectWasTodoCreated } from '../store/todo.selectors';
+
+@UntilDestroy()
 @Component({
   selector: 'app-todo',
   templateUrl: './todo.component.html',
@@ -12,66 +16,34 @@ import { disallowedWords, hasError } from 'src/app/utils/validators.util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TodoComponent implements OnInit {
-  public todos: TodoItemView[] = [];
+  public todos$: Observable<TodoItemView[]> = this.store.select(selectTodos);
+
+  public isCreated$: Observable<boolean> = this.store.select(selectWasTodoCreated);
 
   public description = new FormControl('', [Validators.required, disallowedWords(['cat', 'dog', 'yes', 'no'])]);
 
   public hasError = hasError;
 
-  public constructor(
-    private todoService: TodoService,
-    private changeDetectorRef: ChangeDetectorRef,
-    private snackBar: MatSnackBar
-  ) { }
+  public constructor(private store: Store<AppState>) { }
 
   public ngOnInit(): void {
-    this.queryTodoList();
-  }
+    this.store.dispatch(loadTodos());
 
-  public onUpdateList(): void {
-    this.queryTodoList();
-  }
-
-  private queryTodoList(): void {
-    this.todoService.getTodoList().pipe(map(todos => todos.sort((a, b) => a.description.localeCompare(b.description))))
-      .subscribe(todos => {
-        this.todos = todos;
-        this.changeDetectorRef.detectChanges();
-      })
-  }
-
-  public onDeletedItem(id: string): void {
-    this.todoService.deleteTodo(id)
-      .pipe(catchError(e => {
-        this.snackBar.open(e.error);
-        return EMPTY;
-      }))
+    this.isCreated$.pipe(
+      untilDestroyed(this),
+      filter((result) => !!result))
       .subscribe(() => {
-        this.queryTodoList();
-        this.snackBar.open('Todo was deleted successfully!');
-        this.changeDetectorRef.detectChanges();
-      })
+        this.description.reset();
+        this.store.dispatch(resetCreatingState({ created: false }));
+
+      });
   }
 
   public onSave(): void {
     this.description.markAllAsTouched();
 
     if (this.description.valid) {
-      this.todoService.createTodo({ isCompleted: false, description: <string>this.description.value })
-        .pipe(catchError(e => {
-          this.snackBar.open(e.error);
-          return EMPTY;
-        }))
-        .subscribe(() => {
-          this.onClearDescription();
-          this.queryTodoList();
-          this.snackBar.open('Todo was created successfully!');
-          this.changeDetectorRef.detectChanges();
-        });
+      this.store.dispatch(createTodo({ todo: { isCompleted: false, description: <string>this.description.value } }));
     }
-  }
-
-  public onClearDescription(): void {
-    this.description.reset();
   }
 }

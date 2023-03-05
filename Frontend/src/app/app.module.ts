@@ -6,7 +6,11 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { TodoEffects } from './todo/store/todo.effects';
+import { todoReducer } from './todo/store/todo.reducers';
 
 const routes: Routes = [
   {
@@ -26,7 +30,10 @@ const routes: Routes = [
     NgbModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    MatSnackBarModule,
     RouterModule.forRoot(routes),
+    StoreModule.forRoot({ todos: todoReducer }, {}),
+    EffectsModule.forRoot([TodoEffects])
   ],
   providers: [
     {

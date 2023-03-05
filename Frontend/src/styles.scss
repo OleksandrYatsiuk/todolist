@@ -7,17 +7,18 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@import "assets/styles/components/index";
+@import "assets/styles/index";
 
 html,
 body {
   height: 100%;
 }
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  color: #333;
+  font: 14px, Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  color: #4d4d4d;
+  line-height: 1.4em;
+  margin: 0 auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

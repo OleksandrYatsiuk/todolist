@@ -1,22 +1,27 @@
 import { Component, Inject, OnInit, Optional } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, EMPTY } from 'rxjs';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Store } from '@ngrx/store';
+import { filter, Observable } from 'rxjs';
 import { TodoItemView } from 'src/app/core/services/interfaces/todo.interface';
-import { TodoService } from 'src/app/core/services/todo/todo.service';
 import { disallowedWords, hasError } from 'src/app/utils/validators.util';
+import { resetUpdatingState, updateTodo } from '../../store/todo.actions';
+import { AppState, selectWasTodoUpdated } from '../../store/todo.selectors';
 
-export interface DialogData {
+interface DialogData {
   todo: TodoItemView;
 }
 
+@UntilDestroy()
 @Component({
   selector: 'app-edit-todo',
   templateUrl: './edit-todo.component.html',
   styleUrls: ['./edit-todo.component.scss']
 })
 export class EditTodoComponent implements OnInit {
+  public isUpdated$: Observable<boolean> = this.store.select(selectWasTodoUpdated);
+
   public form!: FormGroup;
 
   public hasError = hasError;
@@ -25,13 +30,20 @@ export class EditTodoComponent implements OnInit {
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData,
     @Optional() private dialogRef: MatDialogRef<EditTodoComponent>,
     private formBuilder: FormBuilder,
-    private todoService: TodoService,
-    private snackBar: MatSnackBar
-  ) {
-  }
+    private store: Store<AppState>,
+  ) { }
 
   public ngOnInit(): void {
     this.initForm(this.data.todo);
+
+    this.isUpdated$.pipe(
+      untilDestroyed(this),
+      filter(result => !!result),
+    )
+      .subscribe(() => {
+        this.dialogRef.close(true);
+        this.store.dispatch(resetUpdatingState({ updated: false }));
+      });
   }
 
   private initForm(item?: TodoItemView): void {
@@ -45,14 +57,7 @@ export class EditTodoComponent implements OnInit {
   public onUpdateTodo(): void {
     this.form.markAllAsTouched();
     if (this.form.valid) {
-      this.todoService.updateTodo(this.form.value.id, this.form.value)
-        .pipe(catchError(e => {
-          this.snackBar.open(e.error);
-          return EMPTY;
-        }))
-        .subscribe((updatedTodo) => {
-          this.dialogRef.close(updatedTodo);
-        });
+      this.store.dispatch(updateTodo({ id: this.form.value.id, body: this.form.value }));
     }
   }
 
