@@ -83,10 +83,10 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col">
+    <div class="row" *ngIf="todos$ | async as todos">
+      <div class="col" *ngIf="todos.length">
         <h1 class="text-center font-normal mb-1">
-          Showing {{ (todos$ | async)?.length || 0 }} Item(s)
+          Showing {{ todos.length }} Item(s)
         </h1>
         <app-todo-table></app-todo-table>
       </div>
